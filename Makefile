@@ -1,5 +1,5 @@
 
-project:=SwiftNcal
+project:=SwiftCurve448
 comma:=,
 
 format:

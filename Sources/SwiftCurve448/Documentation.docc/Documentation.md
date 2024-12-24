@@ -1,15 +1,16 @@
 # ``SwiftCurve448``
 
-Swift implementation of the Curve448 elliptic curve. This library is a Swift wrapper around the [Curve448](https://cr.yp.to/ecdh.html) implementation from [SUPERCOP](https://bench.cr.yp.to/supercop.html).
+Swift-Curve448 is a Swift wrapper for OpenSSL's Curve448 implementation. It provides a simple and familiar API to perform key generation, signing, and signature verification.
 
 
 ## Overview
 
-The library provides a Swift wrapper around the Curve448 implementation from SUPERCOP. The library provides the following functionalities:
+The library provides a Swift wrapper around the Curve448 implementation from OpenSSL. The library provides the following functionalities:
 
 - Generate a Curve448 keypair.
-- Perform a Diffie-Hellman key exchange.
-- Perform a Curve448 scalar multiplication.
+- Perform a key exchange.
+- Sign messages.
+- Verify signatures.
 
 ## Installation
 
@@ -34,36 +35,49 @@ Download the latest release from the [releases page](https://github.com/Kingpin-
 ```swift
 import SwiftCurve448
 
-let keypair = Curve448.generateKeyPair()
+let signingKeyPair = Curve448.Signing.generateKeyPair()
+
+let keyAgreementKeyPair = Curve448.KeyAgreement.generateKeyPair()
 ```
 
-### Perform a Diffie-Hellman key exchange
-
+### Perform a Key Agreement
+    
 ```swift
 import SwiftCurve448
 
-let aliceKeyPair = Curve448.generateKeyPair()
-let bobKeyPair = Curve448.generateKeyPair()
+let aliceKeyPair = Curve448.KeyAgreement.generateKeyPair()
+let bobKeyPair = Curve448.KeyAgreement.generateKeyPair()
 
-let aliceSharedSecret = Curve448.diffieHellman(privateKey: aliceKeyPair.privateKey, publicKey: bobKeyPair.publicKey)
-let bobSharedSecret = Curve448.diffieHellman(privateKey: bobKeyPair.privateKey, publicKey: aliceKeyPair.publicKey)
+let aliceSharedSecret = aliceKeyPair.privateKey.sharedSecret(with: bobKeyPair.publicKey)
+let bobSharedSecret = bobKeyPair.privateKey.sharedSecret(with: aliceKeyPair.publicKey)
 
 assert(aliceSharedSecret == bobSharedSecret)
-
 ```
 
-### Perform a scalar multiplication
-
+### Sign a message
+    
 ```swift
 import SwiftCurve448
 
-let keyPair = Curve448.generateKeyPair()
-let scalar = Curve448.randomScalar()
-
-let publicKey = Curve448.scalarMultiplyBase(scalar)
-let sharedSecret = Curve448.scalarMultiply(scalar, keyPair.publicKey)
-
+let keyPair = Curve448.Signing.generateKeyPair()
+let message = "Hello, World!".data(using: .utf8)!
+let signature = keyPair.privateKey.sign(message)
 ```
+
+### Verify a signature
+        
+```swift
+import SwiftCurve448
+
+let keyPair = Curve448.Signing.generateKeyPair()
+let message = "Hello, World!".data(using: .utf8)!
+let signature = keyPair.privateKey.sign(message)
+
+let isValid = keyPair.publicKey.verify(signature, for: message)
+assert(isValid)
+```
+
+
 
 ## License
 

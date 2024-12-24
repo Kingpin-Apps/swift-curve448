@@ -1,25 +1,27 @@
-![GitHub Workflow Status](https://github.com/Kingpin-Apps/swift-ncal/actions/workflows/swift.yml/badge.svg)
+![GitHub Workflow Status](https://github.com/Kingpin-Apps/swift-curve448/actions/workflows/swift.yml/badge.svg)
 
-# Swift-NaCL - Swift binding to the libsodium library
+# Swift-Curve448 - Swift bindings for Curve448
 
-Swift-NaCL is a Swift binding to a fork of [libsodium](https://github.com/IntersectMBO/libsodium) library. These libraries have a stated goal of
-improving usability, security and speed.
+Swift-Curve448 is a Swift wrapper for OpenSSL's Curve448 implementation. It provides a simple and familiar API to perform key generation, signing, and signature verification.
 
 ## Usage
-To add Swift-NaCL as dependency to your Xcode project, select `File` > `Swift Packages` > `Add Package Dependency`, enter its repository URL: `https://github.com/Kingpin-Apps/swift-ncal.git` and import `SwiftNcal` as well as `Clibsodium`.
+To add Swift-Curve448 as dependency to your Xcode project, select `File` > `Swift Packages` > `Add Package Dependency`, enter its repository URL: `https://github.com/Kingpin-Apps/swift-curve448.git` and import `SwiftCurve448`.
+
+    ```swift
+    dependencies: [
+        .package(url: "https://github.com/Kingpin-Apps/swift-curve448.git", from: "0.0.1")
+    ]
+    ```
 
 Then, to use it in your source code, add:
 
 ```swift
-import SwiftNcal
+import SwiftCurve448
 ```
-
-The Sodium library itself doesn't have to be installed on the system: the repository already includes a precompiled library for armv7, armv7s, arm64, as well as for the iOS simulator, WatchOS and Catalyst.
 
 
 ## Features
-- [x] Digital signatures
-- [x] Secret-key encryption
-- [x] Public-key encryption
-- [x] Hashing and message authentication
-- [x] Password based key derivation and password hashing
+- [x] Private/Public key generation
+- [x] Shared secret 
+- [x] Signing
+- [x] Signature verification
