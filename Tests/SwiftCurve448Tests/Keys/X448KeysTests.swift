@@ -2,6 +2,17 @@ import Testing
 @testable import SwiftCurve448
 
 struct X448KeyTests {
+    
+    @Test
+    func testGenerateKeyPair() async throws {
+        let keyPair = Curve448.KeyAgreement.generateKeyPair()
+        
+        #expect(keyPair.privateKey != nil, "Private key should not be nil.")
+        #expect(keyPair.publicKey != nil, "Public key should not be nil.")
+        
+        #expect(keyPair.publicKey.rawRepresentation.count == 56, "Public key should be 56 bytes long.")
+        #expect(keyPair.privateKey.rawRepresentation.count == 56, "Private key should be 56 bytes long.")
+    }
 
     @Test
     func testX448PrivateKeyInitialization() async throws {
