@@ -1,0 +1,24 @@
+{
+  "configurations" : [
+    {
+      "id" : "886AA0A9-31FD-474C-BAC2-641494BFD79C",
+      "name" : "Test Scheme Action",
+      "options" : {
+
+      }
+    }
+  ],
+  "defaultOptions" : {
+
+  },
+  "testTargets" : [
+    {
+      "target" : {
+        "containerPath" : "container:",
+        "identifier" : "SwiftCurve448Tests",
+        "name" : "SwiftCurve448Tests"
+      }
+    }
+  ],
+  "version" : 1
+}

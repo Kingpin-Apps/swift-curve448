@@ -4,21 +4,32 @@
 import PackageDescription
 
 let package = Package(
-    name: "swift-curve448",
+    name: "SwiftCurve448",
+    platforms: [
+      .iOS(.v14),
+      .macOS(.v13),
+      .watchOS(.v7),
+      .tvOS(.v14),
+    ],
     products: [
-        // Products define the executables and libraries a package produces, making them visible to other packages.
         .library(
-            name: "swift-curve448",
-            targets: ["swift-curve448"]),
+            name: "SwiftCurve448",
+            targets: ["SwiftCurve448"]),
+    ],
+    dependencies: [
+        .package(url: "https://github.com/krzyzanowskim/OpenSSL-Package.git", .upToNextMinor(from: "3.3.2000")),
+        .package(url: "https://github.com/krzyzanowskim/CryptoSwift.git", .upToNextMinor(from: "1.8.3"))
     ],
     targets: [
-        // Targets are the basic building blocks of a package, defining a module or a test suite.
-        // Targets can depend on other targets in this package and products from dependencies.
         .target(
-            name: "swift-curve448"),
+            name: "SwiftCurve448",
+            dependencies: [
+                .product(name: "OpenSSL", package: "OpenSSL-Package"),
+                "CryptoSwift"
+            ]),
         .testTarget(
-            name: "swift-curve448Tests",
-            dependencies: ["swift-curve448"]
+            name: "SwiftCurve448Tests",
+            dependencies: ["SwiftCurve448"]
         ),
     ]
 )

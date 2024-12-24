@@ -1,0 +1,24 @@
+{
+  "originHash" : "77a8755d04868c6abc56d63a79f4b9b4187c3709fe30f15d541f7d2e34790243",
+  "pins" : [
+    {
+      "identity" : "cryptoswift",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/krzyzanowskim/CryptoSwift.git",
+      "state" : {
+        "revision" : "729e01bc9b9dab466ac85f21fb9ee2bc1c61b258",
+        "version" : "1.8.4"
+      }
+    },
+    {
+      "identity" : "openssl-package",
+      "kind" : "remoteSourceControl",
+      "location" : "https://github.com/krzyzanowskim/OpenSSL-Package.git",
+      "state" : {
+        "revision" : "b9eb055fdf73e595cb4b9f665d13dc85975bf80a",
+        "version" : "3.3.2000"
+      }
+    }
+  ],
+  "version" : 3
+}
