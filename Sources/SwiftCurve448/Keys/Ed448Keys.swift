@@ -71,5 +71,12 @@ extension Curve448 {
                 return self.baseKey.keyBytes
             }
         }
+        
+        /// Generates a new Curve448 key pair for signing.
+        /// - Returns: The new key pair.
+        public static func generateKeyPair() -> (publicKey: PublicKey, privateKey: PrivateKey) {
+            let privateKey = PrivateKey()
+            return (publicKey: privateKey.publicKey, privateKey: privateKey)
+        }
     }
 }

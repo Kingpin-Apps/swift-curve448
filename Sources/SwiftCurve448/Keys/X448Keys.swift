@@ -99,5 +99,12 @@ extension Curve448 {
                 return self.baseKey.key
             }
         }
+        
+        /// Generates a new Curve448 key pair for key agreement.
+        /// - Returns: The generated key pair.
+        public static func generateKeyPair() -> (publicKey: PublicKey, privateKey: PrivateKey) {
+            let privateKey = PrivateKey()
+            return (publicKey: privateKey.publicKey, privateKey: privateKey)
+        }
     }
 }
