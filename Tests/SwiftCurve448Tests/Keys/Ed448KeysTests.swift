@@ -7,8 +7,8 @@ struct Ed448KeyTests {
     func testGenerateKeyPair() async throws {
         let keyPair = Curve448.Signing.generateKeyPair()
         
-        #expect(keyPair.privateKey != nil, "Private key should not be nil.")
-        #expect(keyPair.publicKey != nil, "Public key should not be nil.")
+        #expect(!keyPair.privateKey.rawRepresentation.isEmpty, "Private key should not be empty.")
+        #expect(!keyPair.publicKey.rawRepresentation.isEmpty, "Public key should not be empty.")
         
         #expect(keyPair.publicKey.rawRepresentation.count == 57, "Public key should be 57 bytes long.")
         #expect(keyPair.privateKey.rawRepresentation.count == 57, "Private key should be 57 bytes long.")
@@ -16,10 +16,10 @@ struct Ed448KeyTests {
 
     @Test func testPrivateKeyInitialization() async throws {
         let privateKey = Curve448.Signing.PrivateKey()
-        #expect(privateKey != nil, "PrivateKey should initialize successfully.")
+        #expect(!privateKey.rawRepresentation.isEmpty, "PrivateKey should initialize successfully.")
         
         let publicKey = privateKey.publicKey
-        #expect(publicKey != nil, "PublicKey should be generated from PrivateKey.")
+        #expect(!publicKey.rawRepresentation.isEmpty, "PublicKey should be generated from PrivateKey.")
     }
 
     @Test func testPrivateKeyRawRepresentation() async throws {

@@ -199,6 +199,8 @@ extension Curve448.KeyAgreement {
                 guard result == 1 else {
                     return
                 }
+                // set the underlying size upon sucessfully generating the shared secret
+                secretSize = secretLength
             }
 
             return SharedSecret(ss: sharedSecret)

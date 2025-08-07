@@ -29,7 +29,10 @@ let package = Package(
             ]),
         .testTarget(
             name: "SwiftCurve448Tests",
-            dependencies: ["SwiftCurve448"]
+            dependencies: ["SwiftCurve448"],
+            resources: [
+                .process("Resources")
+            ]
         ),
     ]
 )
