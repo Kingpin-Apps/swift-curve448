@@ -1,8 +1,10 @@
-## 0.1.1 (2025-08-09)
+## 0.1.2 (2025-08-24)
 
 ### Fix
 
-- fix "empty" shared secret from key agreement
+- update CryptoSwift
+
+## 0.1.1 (2025-08-09)
 
 ## 0.1.0 (2024-12-24)
 
