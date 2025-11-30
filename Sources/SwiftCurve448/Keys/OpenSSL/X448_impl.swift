@@ -1,5 +1,5 @@
 import Foundation
-@_implementationOnly import OpenSSL
+import OpenSSL
 
 extension Curve448.KeyAgreement {
     @usableFromInline

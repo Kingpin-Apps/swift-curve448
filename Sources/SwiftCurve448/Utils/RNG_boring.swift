@@ -11,7 +11,11 @@
 // SPDX-License-Identifier: Apache-2.0
 //
 //===----------------------------------------------------------------------===//
+#if canImport(CryptoKit)
 import CryptoKit
+#elseif canImport(Crypto)
+import Crypto
+#endif
 
 extension UnsafeMutableRawBufferPointer {
     func initializeWithRandomBytes(count: Int) {

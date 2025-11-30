@@ -1,5 +1,5 @@
 import Foundation
-@_implementationOnly import OpenSSL
+import OpenSSL
 
 // For signing and verifying, we use OpenSSL's Ed448, not the X448 stuff.
 extension Curve448.Signing {

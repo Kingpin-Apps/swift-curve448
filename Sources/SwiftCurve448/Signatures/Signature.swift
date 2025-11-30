@@ -12,7 +12,11 @@
 //
 //===----------------------------------------------------------------------===//
 import Foundation
+#if canImport(CryptoKit)
 import CryptoKit
+#elseif canImport(Crypto)
+import Crypto
+#endif
 
 protocol SignatureVerification {
     func verifySignature(signature: Data, data: Data) throws -> Bool

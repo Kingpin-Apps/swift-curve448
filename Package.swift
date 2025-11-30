@@ -8,8 +8,9 @@ let package = Package(
     platforms: [
       .iOS(.v14),
       .macOS(.v13),
-      .watchOS(.v7),
+      .watchOS(.v9),
       .tvOS(.v14),
+      .visionOS(.v1)
     ],
     products: [
         .library(
@@ -17,15 +18,17 @@ let package = Package(
             targets: ["SwiftCurve448"]),
     ],
     dependencies: [
-        .package(url: "https://github.com/krzyzanowskim/OpenSSL-Package.git", .upToNextMinor(from: "3.3.2000")),
-        .package(url: "https://github.com/krzyzanowskim/CryptoSwift.git", .upToNextMinor(from: "1.9.0"))
+        .package(url: "https://github.com/krzyzanowskim/OpenSSL-Package.git", .upToNextMinor(from: "3.3.3000")),
+        // Provides Crypto compatible APIs on Linux
+        .package(url: "https://github.com/apple/swift-crypto.git", from: "3.15.1"),
     ],
     targets: [
         .target(
             name: "SwiftCurve448",
             dependencies: [
                 .product(name: "OpenSSL", package: "OpenSSL-Package"),
-                "CryptoSwift"
+                // Only link swift-crypto on Linux; on Apple platforms, CryptoKit is available.
+                .product(name: "Crypto", package: "swift-crypto", condition: .when(platforms: [.linux])),
             ]),
         .testTarget(
             name: "SwiftCurve448Tests",
