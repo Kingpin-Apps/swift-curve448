@@ -1,5 +1,9 @@
 import Foundation
+#if canImport(OpenSSL)
 import OpenSSL
+#else
+import COpenSSL
+#endif
 
 extension Curve448.KeyAgreement {
     @usableFromInline
@@ -66,11 +70,6 @@ extension Curve448.KeyAgreement {
                     guard let publicKeyRawPtr = publicKeyPtr.baseAddress else {
                         return
                     }
-                    guard EVP_PKEY_keygen(ctx, privateKeyPtr) == 1 else {
-                        return
-                    }
-                    EVP_PKEY_keygen(ctx, privateKeyPtr)
-                    
                     EVP_PKEY_get_raw_private_key(
                         pkey,
                         privateKeyPtr,

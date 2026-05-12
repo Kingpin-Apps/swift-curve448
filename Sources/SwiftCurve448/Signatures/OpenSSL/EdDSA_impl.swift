@@ -1,5 +1,9 @@
 import Foundation
+#if canImport(OpenSSL)
 import OpenSSL
+#else
+import COpenSSL
+#endif
 
 extension Curve448.Signing.PublicKey {
     // We do this to enable inlinability on these methods.

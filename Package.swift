@@ -18,15 +18,35 @@ let package = Package(
             targets: ["SwiftCurve448"]),
     ],
     dependencies: [
+        // Prebuilt OpenSSL xcframework for Apple platforms only.
         .package(url: "https://github.com/krzyzanowskim/OpenSSL-Package.git", .upToNextMinor(from: "3.3.3000")),
         // Provides Crypto compatible APIs on Linux
         .package(url: "https://github.com/apple/swift-crypto.git", from: "3.15.1"),
     ],
     targets: [
+        // System libcrypto on Linux — provides the same `EVP_*`, `ERR_*` symbols
+        // that `OpenSSL-Package` ships prebuilt on Apple. Sources import either
+        // `OpenSSL` or `COpenSSL` via `#if canImport(...)`.
+        .systemLibrary(
+            name: "COpenSSL",
+            pkgConfig: "libcrypto",
+            providers: [
+                .apt(["libssl-dev"]),
+                .yum(["openssl-devel"]),
+            ]
+        ),
         .target(
             name: "SwiftCurve448",
             dependencies: [
-                .product(name: "OpenSSL", package: "OpenSSL-Package"),
+                .product(
+                    name: "OpenSSL",
+                    package: "OpenSSL-Package",
+                    condition: .when(platforms: [.iOS, .macOS, .watchOS, .tvOS, .visionOS, .macCatalyst])
+                ),
+                .target(
+                    name: "COpenSSL",
+                    condition: .when(platforms: [.linux, .android])
+                ),
                 // Only link swift-crypto on Linux; on Apple platforms, CryptoKit is available.
                 .product(name: "Crypto", package: "swift-crypto", condition: .when(platforms: [.linux])),
             ]),

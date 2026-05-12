@@ -1,5 +1,9 @@
 import Foundation
+#if canImport(OpenSSL)
 import OpenSSL
+#else
+import COpenSSL
+#endif
 
 // For signing and verifying, we use OpenSSL's Ed448, not the X448 stuff.
 extension Curve448.Signing {
@@ -39,11 +43,6 @@ extension Curve448.Signing {
                     guard let publicKeyRawPtr = publicKeyPtr.baseAddress else {
                         return
                     }
-                    guard EVP_PKEY_keygen(ctx, privateKeyPtr) == 1 else {
-                        return
-                    }
-                    EVP_PKEY_keygen(ctx, privateKeyPtr)
-                    
                     EVP_PKEY_get_raw_private_key(
                         pkey,
                         privateKeyPtr,

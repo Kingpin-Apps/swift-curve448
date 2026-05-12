@@ -16,6 +16,11 @@ import CryptoKit
 #elseif canImport(Crypto)
 import Crypto
 #endif
+#if canImport(OpenSSL)
+import OpenSSL
+#else
+import COpenSSL
+#endif
 import Foundation
 
 //private let emptyStorage:SecureBytes.Backing = SecureBytes.Backing.createEmpty()
@@ -314,8 +319,11 @@ extension SecureBytes {
             // We always clear the whole capacity, even if we don't think we used it all.
             let bytesToClear = self.header.capacity
 
-            _ = self.withUnsafeMutablePointerToElements { elementsPtr in
-                memset_s(elementsPtr, bytesToClear, 0, bytesToClear)
+            // OPENSSL_cleanse is the cross-platform secure zero — guaranteed not to be
+            // optimised away even when the memory is unread afterward. Replaces the
+            // Apple-only `memset_s` (C11 Annex K, unavailable on glibc).
+            self.withUnsafeMutablePointerToElements { elementsPtr in
+                OPENSSL_cleanse(UnsafeMutableRawPointer(elementsPtr), bytesToClear)
             }
         }
 
