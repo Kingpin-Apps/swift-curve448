@@ -46,14 +46,6 @@ let package = Package(
             publicHeadersPath: "include",
             cSettings: [
                 .headerSearchPath("private"),
-                // Quieting libgoldilocks's strict warnings — we vendor it
-                // unmodified except for the arch dispatch guards.
-                .unsafeFlags([
-                    "-Wno-unused-function",
-                    "-Wno-unused-parameter",
-                    "-Wno-implicit-fallthrough",
-                    "-Wno-unknown-pragmas",
-                ]),
             ]
         ),
         .target(
