@@ -1,3 +1,9 @@
+## 0.2.1 (2026-05-28)
+
+### Fix
+
+- drop unsafeFlags from CEd448Vendored so consumers can import
+
 ## 0.2.0 (2026-05-28)
 
 ### Feat
