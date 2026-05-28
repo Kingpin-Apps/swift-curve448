@@ -35,6 +35,27 @@ let package = Package(
                 .yum(["openssl-devel"]),
             ]
         ),
+        // Vendored libgoldilocks (MIT-licensed Ed448-Goldilocks/libdecaf
+        // derivative) for platforms without a usable libcrypto: currently
+        // Android and Wasm. Self-contained — includes its own SHAKE256, so it
+        // has no external crypto dependencies.
+        .target(
+            name: "CEd448Vendored",
+            path: "Sources/CEd448Vendored",
+            exclude: ["LICENSE.libgoldilocks.txt"],
+            publicHeadersPath: "include",
+            cSettings: [
+                .headerSearchPath("private"),
+                // Quieting libgoldilocks's strict warnings — we vendor it
+                // unmodified except for the arch dispatch guards.
+                .unsafeFlags([
+                    "-Wno-unused-function",
+                    "-Wno-unused-parameter",
+                    "-Wno-implicit-fallthrough",
+                    "-Wno-unknown-pragmas",
+                ]),
+            ]
+        ),
         .target(
             name: "SwiftCurve448",
             dependencies: [
@@ -45,10 +66,19 @@ let package = Package(
                 ),
                 .target(
                     name: "COpenSSL",
-                    condition: .when(platforms: [.linux, .android])
+                    condition: .when(platforms: [.linux])
                 ),
-                // Only link swift-crypto on Linux; on Apple platforms, CryptoKit is available.
-                .product(name: "Crypto", package: "swift-crypto", condition: .when(platforms: [.linux])),
+                .target(
+                    name: "CEd448Vendored",
+                    condition: .when(platforms: [.android, .wasi])
+                ),
+                // Only link swift-crypto on Linux, Android, and Wasm; on Apple
+                // platforms, CryptoKit is available.
+                .product(
+                    name: "Crypto",
+                    package: "swift-crypto",
+                    condition: .when(platforms: [.linux, .android, .wasi])
+                ),
             ]),
         .testTarget(
             name: "SwiftCurve448Tests",

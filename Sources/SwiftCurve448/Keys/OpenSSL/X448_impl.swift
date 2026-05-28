@@ -1,8 +1,10 @@
 import Foundation
 #if canImport(OpenSSL)
 import OpenSSL
-#else
+#elseif canImport(COpenSSL)
 import COpenSSL
+#elseif canImport(CEd448Vendored)
+import CEd448Vendored
 #endif
 
 extension Curve448.KeyAgreement {
@@ -44,23 +46,24 @@ extension Curve448.KeyAgreement {
         var publicKey: Curve448PublicKeyImpl
 
         init() {
-            // Create a new context for Ed448 key generation
+            #if canImport(OpenSSL) || canImport(COpenSSL)
+            // Create a new context for X448 key generation
             let ctx = EVP_PKEY_CTX_new_id(EVP_PKEY_X448, nil)
             defer { EVP_PKEY_CTX_free(ctx) }
-            
+
             // Initialize key generation
             guard EVP_PKEY_keygen_init(ctx) == 1 else {
                 fatalError("Failed to initialize X448 key generation.")
             }
-            
+
             var pkey: OpaquePointer?
-            
+
             // Generate the key
             guard EVP_PKEY_keygen(ctx, &pkey) == 1 else {
                 fatalError("Failed to generate X448 key.")
             }
             defer { EVP_PKEY_free(pkey) }
-            
+
             var publicKey = Array(repeating: UInt8(0), count: Curve448.KeyAgreement.keySizeBytes)
 
             let privateKey = SecureBytes(unsafeUninitializedCapacity: 113) { privateKeyPtr, privateKeyBytes in
@@ -81,9 +84,24 @@ extension Curve448.KeyAgreement {
                         &publicKeyLength)
                 }
             }
-            
+
             self.key = privateKey
             self.publicKey = .init(publicKey)
+            #else
+            // Vendored libgoldilocks path: 56 random bytes → derive public key.
+            var publicKey = Array(repeating: UInt8(0), count: Curve448.KeyAgreement.keySizeBytes)
+            let privateKey = SecureBytes(count: Curve448.KeyAgreement.keySizeBytes)
+            privateKey.withUnsafeBytes { privPtr in
+                publicKey.withUnsafeMutableBytes { pubPtr in
+                    ce_x448_derive_public_key(
+                        pubPtr.baseAddress!.assumingMemoryBound(to: UInt8.self),
+                        privPtr.baseAddress!.assumingMemoryBound(to: UInt8.self)
+                    )
+                }
+            }
+            self.key = privateKey
+            self.publicKey = .init(publicKey)
+            #endif
         }
 
         init<D: ContiguousBytes>(rawRepresentation data: D) throws {
@@ -91,13 +109,14 @@ extension Curve448.KeyAgreement {
                 repeating: UInt8(0),
                 count: Curve448.KeyAgreement.keyByteCount
             )
-            
+
+            #if canImport(OpenSSL) || canImport(COpenSSL)
             let privateKey = try SecureBytes(unsafeUninitializedCapacity: 112) { privateKeyPtr, privateKeyBytes in
                 privateKeyBytes = 112
                 var publicKeyLength = 57
-                
+
                 let pkey = data.withUnsafeBytes { seedPtr -> OpaquePointer? in
-                    
+
                     return EVP_PKEY_new_raw_private_key(
                         EVP_PKEY_X448,
                         nil,
@@ -105,7 +124,7 @@ extension Curve448.KeyAgreement {
                         seedPtr.count
                     )
                 }
-                
+
                 // Ensure the key was successfully created
                 guard let validPkey = pkey else {
                     let openSSLError = ERR_get_error()
@@ -130,7 +149,7 @@ extension Curve448.KeyAgreement {
                         publicKeyPtr.baseAddress,
                         &publicKeyLength)
                 }
-                
+
                 // If key extraction fails, throw an error
                 guard privateKeyResult == 1 && publicKeyResult == 1 else {
                     let openSSLError = ERR_get_error()
@@ -138,13 +157,31 @@ extension Curve448.KeyAgreement {
                     throw Curve448Error.openSSLError("Could not extract key: \(errorString)")
                 }
             }
-            
+            #else
+            // Vendored libgoldilocks path: 56-byte scalar → derive public key.
+            try data.withUnsafeBytes { seedPtr in
+                guard seedPtr.count == Curve448.KeyAgreement.keySizeBytes else {
+                    throw Curve448Error.incorrectKeySize("Curve448 private keys must be \(Curve448.KeyAgreement.keySizeBytes) bytes")
+                }
+            }
+            let privateKey = SecureBytes(bytes: data)
+            privateKey.withUnsafeBytes { privPtr in
+                publicKey.withUnsafeMutableBytes { pubPtr in
+                    ce_x448_derive_public_key(
+                        pubPtr.baseAddress!.assumingMemoryBound(to: UInt8.self),
+                        privPtr.baseAddress!.assumingMemoryBound(to: UInt8.self)
+                    )
+                }
+            }
+            #endif
+
             self.key = privateKey
             self.publicKey = .init(publicKey)
         }
 
         @usableFromInline
         func sharedSecretFromKeyAgreement(with publicKeyShare: Curve448PublicKeyImpl) throws -> SharedSecret {
+            #if canImport(OpenSSL) || canImport(COpenSSL)
             var ctx: OpaquePointer?
             var pkey: OpaquePointer?
             var peerkey: OpaquePointer?
@@ -154,7 +191,7 @@ extension Curve448.KeyAgreement {
                 EVP_PKEY_free(pkey)
                 EVP_PKEY_free(peerkey)
             }
-            
+
             // Initialize private key from raw data
             key.withUnsafeBytes { keyPtr in
                 pkey = EVP_PKEY_new_raw_private_key(EVP_PKEY_X448, nil, keyPtr.baseAddress, key.count)
@@ -174,12 +211,12 @@ extension Curve448.KeyAgreement {
             guard ctx != nil else {
                 throw Curve448Error.keyAgreementFailure("Failed to initialize context.")
             }
-            
+
             // Initialize key derivation
             guard EVP_PKEY_derive_init(ctx) == 1 else {
                 throw Curve448Error.keyAgreementFailure("Key derivation initialization failed.")
             }
-            
+
             // Set the peer public key for derivation
             guard EVP_PKEY_derive_set_peer(ctx, peerkey) == 1 else {
                 throw Curve448Error.keyAgreementFailure("Failed to set peer public key.")
@@ -190,11 +227,11 @@ extension Curve448.KeyAgreement {
             guard EVP_PKEY_derive(ctx, nil, &secretLength) == 1 else {
                 throw Curve448Error.keyAgreementFailure("Failed to determine secret length.")
             }
-            
+
             // Perform key agreement to derive shared secret
             let sharedSecret = SecureBytes(unsafeUninitializedCapacity: secretLength) { secretPointer, secretSize in
                 let result = EVP_PKEY_derive(ctx, secretPointer, &secretLength)
-                
+
                 guard result == 1 else {
                     return
                 }
@@ -203,6 +240,26 @@ extension Curve448.KeyAgreement {
             }
 
             return SharedSecret(ss: sharedSecret)
+            #else
+            // Vendored libgoldilocks path: scalar × peer_pubkey → 56-byte shared secret.
+            var sharedBytes = [UInt8](repeating: 0, count: Curve448.KeyAgreement.keySizeBytes)
+            let rc = sharedBytes.withUnsafeMutableBytes { sharedPtr -> ce_ed448_result in
+                key.withUnsafeBytes { scalarPtr in
+                    publicKeyShare.keyBytes.withUnsafeBufferPointer { peerPtr in
+                        ce_x448_shared_secret(
+                            sharedPtr.baseAddress!.assumingMemoryBound(to: UInt8.self),
+                            scalarPtr.baseAddress!.assumingMemoryBound(to: UInt8.self),
+                            peerPtr.baseAddress!
+                        )
+                    }
+                }
+            }
+            guard rc == CE_ED448_SUCCESS else {
+                throw Curve448Error.keyAgreementFailure("X448 key agreement returned an all-zero (small-subgroup) shared secret.")
+            }
+            let sharedSecret = SecureBytes(bytes: sharedBytes)
+            return SharedSecret(ss: sharedSecret)
+            #endif
         }
 
         @usableFromInline

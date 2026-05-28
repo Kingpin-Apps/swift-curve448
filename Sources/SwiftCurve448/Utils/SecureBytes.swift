@@ -18,8 +18,10 @@ import Crypto
 #endif
 #if canImport(OpenSSL)
 import OpenSSL
-#else
+#elseif canImport(COpenSSL)
 import COpenSSL
+#elseif canImport(CEd448Vendored)
+import CEd448Vendored
 #endif
 import Foundation
 
@@ -319,11 +321,16 @@ extension SecureBytes {
             // We always clear the whole capacity, even if we don't think we used it all.
             let bytesToClear = self.header.capacity
 
-            // OPENSSL_cleanse is the cross-platform secure zero — guaranteed not to be
-            // optimised away even when the memory is unread afterward. Replaces the
-            // Apple-only `memset_s` (C11 Annex K, unavailable on glibc).
+            // Secure zero — guaranteed not to be optimised away even when the
+            // memory is unread afterward. OPENSSL_cleanse on Apple/Linux, the
+            // libgoldilocks equivalent on Android/Wasm. Replaces the Apple-only
+            // `memset_s` (C11 Annex K, unavailable on glibc).
             self.withUnsafeMutablePointerToElements { elementsPtr in
+                #if canImport(OpenSSL) || canImport(COpenSSL)
                 OPENSSL_cleanse(UnsafeMutableRawPointer(elementsPtr), bytesToClear)
+                #else
+                ce_ed448_cleanse(UnsafeMutableRawPointer(elementsPtr), bytesToClear)
+                #endif
             }
         }
 

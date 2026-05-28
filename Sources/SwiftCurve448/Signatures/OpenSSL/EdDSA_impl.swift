@@ -1,8 +1,10 @@
 import Foundation
 #if canImport(OpenSSL)
 import OpenSSL
-#else
+#elseif canImport(COpenSSL)
 import COpenSSL
+#elseif canImport(CEd448Vendored)
+import CEd448Vendored
 #endif
 
 extension Curve448.Signing.PublicKey {
@@ -46,12 +48,13 @@ extension Curve448.Signing.PublicKey {
     @usableFromInline
     func openSSLIsValidSignature(signaturePointer: UnsafeRawBufferPointer, dataPointer: UnsafeRawBufferPointer) -> Bool {
         precondition(signaturePointer.count == Curve448.Signing.PublicKey.signatureByteCount)
-        
+
         guard rawRepresentation.count == 57 else {
             print("Error: Public key size is \(keyBytes.count) bytes, expected 57.")
             return false
         }
 
+        #if canImport(OpenSSL) || canImport(COpenSSL)
         // Create a context for the verification
         let ctx = EVP_MD_CTX_new()
         defer { EVP_MD_CTX_free(ctx) }
@@ -65,7 +68,7 @@ extension Curve448.Signing.PublicKey {
                 keyBytesPtr.count
             )
         }
-        
+
         guard let validPkey = pkey else {
             let openSSLError = ERR_get_error()
             let errorString = String(cString: ERR_error_string(openSSLError, nil))
@@ -73,7 +76,7 @@ extension Curve448.Signing.PublicKey {
             return false
         }
         defer { EVP_PKEY_free(validPkey) }
-        
+
         // Initialize EVP_DigestVerify
         if EVP_DigestVerifyInit(ctx, nil, nil, nil, validPkey) <= 0 {
             let openSSLError = ERR_get_error()
@@ -98,6 +101,18 @@ extension Curve448.Signing.PublicKey {
         }
 
         return rc == 1
+        #else
+        // Vendored libgoldilocks path.
+        let rc: ce_ed448_result = rawRepresentation.withUnsafeBytes { pubPtr in
+            ce_ed448_verify(
+                signaturePointer.baseAddress!.assumingMemoryBound(to: UInt8.self),
+                pubPtr.baseAddress!.assumingMemoryBound(to: UInt8.self),
+                dataPointer.count == 0 ? nil : dataPointer.baseAddress!.assumingMemoryBound(to: UInt8.self),
+                dataPointer.count
+            )
+        }
+        return rc == CE_ED448_SUCCESS
+        #endif
     }
 }
 
@@ -122,6 +137,7 @@ extension Curve448.Signing.PrivateKey {
     func openSSLSignature(forDataPointer dataPointer: UnsafeRawBufferPointer) throws -> Data {
         var signature = Data(repeating: 0, count: 114)  // Ed448 signature size
 
+        #if canImport(OpenSSL) || canImport(COpenSSL)
         // Create EVP_PKEY from raw private key
         let pkey = try self.key.withUnsafeBytes { seedPtr -> OpaquePointer? in
             guard seedPtr.count == 57 else {
@@ -185,5 +201,27 @@ extension Curve448.Signing.PrivateKey {
         // Resize the signature to the actual length
         signature.count = signatureLength
         return signature
+        #else
+        // Vendored libgoldilocks path. The 57-byte privkey and 57-byte pubkey
+        // are both required by goldilocks_ed448_sign.
+        guard self.key.count == 57 else {
+            throw Curve448Error.incorrectKeySize("Seed must be 57 bytes for Ed448.")
+        }
+        let pubKey = self.publicKey.rawRepresentation
+        signature.withUnsafeMutableBytes { sigPtr in
+            self.key.withUnsafeBytes { privPtr in
+                pubKey.withUnsafeBytes { pubPtr in
+                    ce_ed448_sign(
+                        sigPtr.baseAddress!.assumingMemoryBound(to: UInt8.self),
+                        privPtr.baseAddress!.assumingMemoryBound(to: UInt8.self),
+                        pubPtr.baseAddress!.assumingMemoryBound(to: UInt8.self),
+                        dataPointer.count == 0 ? nil : dataPointer.baseAddress!.assumingMemoryBound(to: UInt8.self),
+                        dataPointer.count
+                    )
+                }
+            }
+        }
+        return signature
+        #endif
     }
 }

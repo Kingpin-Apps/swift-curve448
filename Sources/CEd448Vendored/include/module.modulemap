@@ -1,0 +1,4 @@
+module CEd448Vendored {
+    umbrella header "ce_ed448.h"
+    export *
+}
