@@ -1,3 +1,9 @@
+## 0.2.0 (2026-05-28)
+
+### Feat
+
+- vendor libgoldilocks for Android and Wasm Ed448/X448 support
+
 ## 0.1.4 (2026-05-11)
 
 ### Fix
