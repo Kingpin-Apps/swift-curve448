@@ -3,13 +3,13 @@ import Foundation
 import OpenSSL
 #elseif canImport(COpenSSL)
 import COpenSSL
-#elseif canImport(CEd448Vendored)
-import CEd448Vendored
+#elseif canImport(CGoldilocks)
+import CGoldilocks
 #endif
 
 // For signing and verifying, we use Ed448, not the X448 stuff.
-// On Apple/Linux this is OpenSSL's EVP_* API; on Android/Wasm it is the
-// vendored libgoldilocks (see Sources/CEd448Vendored).
+// On Apple/Linux this is OpenSSL's EVP_* API; on Android/Wasm it is
+// libgoldilocks via the shared swift-goldilocks package.
 extension Curve448.Signing {
     @usableFromInline
     struct Curve448PrivateKeyImpl {

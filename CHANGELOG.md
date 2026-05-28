@@ -1,3 +1,9 @@
+## 0.2.2 (2026-05-28)
+
+### Refactor
+
+- depend on swift-goldilocks instead of vendoring libgoldilocks
+
 ## 0.2.1 (2026-05-28)
 
 ### Fix

@@ -20,8 +20,8 @@ import Crypto
 import OpenSSL
 #elseif canImport(COpenSSL)
 import COpenSSL
-#elseif canImport(CEd448Vendored)
-import CEd448Vendored
+#elseif canImport(CGoldilocks)
+import CGoldilocks
 #endif
 import Foundation
 
