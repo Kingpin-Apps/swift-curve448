@@ -22,6 +22,11 @@ let package = Package(
         .package(url: "https://github.com/krzyzanowskim/OpenSSL-Package.git", .upToNextMinor(from: "3.3.3000")),
         // Provides Crypto compatible APIs on Linux
         .package(url: "https://github.com/apple/swift-crypto.git", from: "3.15.1"),
+        // Shared libgoldilocks vendor — provides Ed448 + X448 + SHAKE on
+        // platforms without a usable libcrypto (currently Android and Wasm).
+        // Used to live in-tree as Sources/CEd448Vendored; pulled out so
+        // swift-cose and other consumers can share the same C code.
+        .package(url: "https://github.com/Kingpin-Apps/swift-goldilocks.git", from: "0.1.0"),
     ],
     targets: [
         // System libcrypto on Linux — provides the same `EVP_*`, `ERR_*` symbols
@@ -33,19 +38,6 @@ let package = Package(
             providers: [
                 .apt(["libssl-dev"]),
                 .yum(["openssl-devel"]),
-            ]
-        ),
-        // Vendored libgoldilocks (MIT-licensed Ed448-Goldilocks/libdecaf
-        // derivative) for platforms without a usable libcrypto: currently
-        // Android and Wasm. Self-contained — includes its own SHAKE256, so it
-        // has no external crypto dependencies.
-        .target(
-            name: "CEd448Vendored",
-            path: "Sources/CEd448Vendored",
-            exclude: ["LICENSE.libgoldilocks.txt"],
-            publicHeadersPath: "include",
-            cSettings: [
-                .headerSearchPath("private"),
             ]
         ),
         .target(
@@ -60,8 +52,10 @@ let package = Package(
                     name: "COpenSSL",
                     condition: .when(platforms: [.linux])
                 ),
-                .target(
-                    name: "CEd448Vendored",
+                // libgoldilocks Ed448/X448 on platforms without libcrypto.
+                .product(
+                    name: "CGoldilocks",
+                    package: "swift-goldilocks",
                     condition: .when(platforms: [.android, .wasi])
                 ),
                 // Only link swift-crypto on Linux, Android, and Wasm; on Apple
