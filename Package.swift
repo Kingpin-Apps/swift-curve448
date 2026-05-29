@@ -18,20 +18,11 @@ let package = Package(
             targets: ["SwiftCurve448"]),
     ],
     dependencies: [
-        // Prebuilt OpenSSL xcframework for Apple platforms only.
         .package(url: "https://github.com/krzyzanowskim/OpenSSL-Package.git", .upToNextMinor(from: "3.3.3000")),
-        // Provides Crypto compatible APIs on Linux
-        .package(url: "https://github.com/apple/swift-crypto.git", from: "3.15.1"),
-        // Shared libgoldilocks vendor — provides Ed448 + X448 + SHAKE on
-        // platforms without a usable libcrypto (currently Android and Wasm).
-        // Used to live in-tree as Sources/CEd448Vendored; pulled out so
-        // swift-cose and other consumers can share the same C code.
+        .package(url: "https://github.com/apple/swift-crypto.git", from: "4.5.0"),
         .package(url: "https://github.com/Kingpin-Apps/swift-goldilocks.git", from: "0.1.0"),
     ],
     targets: [
-        // System libcrypto on Linux — provides the same `EVP_*`, `ERR_*` symbols
-        // that `OpenSSL-Package` ships prebuilt on Apple. Sources import either
-        // `OpenSSL` or `COpenSSL` via `#if canImport(...)`.
         .systemLibrary(
             name: "COpenSSL",
             pkgConfig: "libcrypto",
