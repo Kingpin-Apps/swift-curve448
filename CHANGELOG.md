@@ -1,3 +1,20 @@
+## 0.3.0 (2026-05-31)
+
+### Refactor
+
+- drop OpenSSL-Package and COpenSSL; Ed448/X448 now use swift-goldilocks on all platforms (previously: OpenSSL on Apple+Linux, Goldilocks on Android+Wasi)
+- downstream Mach-Os become fully static; the `@rpath/OpenSSL.framework` load command disappears
+- Linux `libssl-dev` / `openssl-devel` build requirement removed
+
+### Fix
+
+- Ed448 public-key import error message previously said "Seed must be 56 bytes" while the guard required 57 — message corrected
+
+### BREAKING CHANGE
+
+- `Curve448Error.openSSLError` deprecated (kept for API compatibility, removal scheduled for next major)
+- X448 `init(rawRepresentation:)` now validates seed length up front and throws `Curve448Error.incorrectKeySize` for non-56-byte input. Happy-path output is byte-equivalent (RFC 7748 / RFC 8032 are fully specified; existing RFC test vectors enforce this); error surface on bad input is stricter
+
 ## 0.2.3 (2026-05-29)
 
 ### Fix
