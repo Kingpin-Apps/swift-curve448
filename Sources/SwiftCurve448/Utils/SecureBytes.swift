@@ -16,13 +16,7 @@ import CryptoKit
 #elseif canImport(Crypto)
 import Crypto
 #endif
-#if canImport(OpenSSL)
-import OpenSSL
-#elseif canImport(COpenSSL)
-import COpenSSL
-#elseif canImport(CGoldilocks)
 import CGoldilocks
-#endif
 import Foundation
 
 //private let emptyStorage:SecureBytes.Backing = SecureBytes.Backing.createEmpty()
@@ -322,15 +316,11 @@ extension SecureBytes {
             let bytesToClear = self.header.capacity
 
             // Secure zero — guaranteed not to be optimised away even when the
-            // memory is unread afterward. OPENSSL_cleanse on Apple/Linux, the
-            // libgoldilocks equivalent on Android/Wasm. Replaces the Apple-only
-            // `memset_s` (C11 Annex K, unavailable on glibc).
+            // memory is unread afterward. Provided by libgoldilocks via
+            // swift-goldilocks; replaces the Apple-only `memset_s`
+            // (C11 Annex K, unavailable on glibc).
             self.withUnsafeMutablePointerToElements { elementsPtr in
-                #if canImport(OpenSSL) || canImport(COpenSSL)
-                OPENSSL_cleanse(UnsafeMutableRawPointer(elementsPtr), bytesToClear)
-                #else
                 ce_ed448_cleanse(UnsafeMutableRawPointer(elementsPtr), bytesToClear)
-                #endif
             }
         }
 

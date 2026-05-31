@@ -7,6 +7,7 @@ public enum Curve448Error: Error {
     case keyAgreementFailure(String)
     case keyGenerationFailed(String)
     case notImplemented(String)
+    @available(*, deprecated, message: "OpenSSL is no longer used; this case is retained for API compatibility and will be removed in a future major release")
     case openSSLError(String)
     case valueError(String)
 }
