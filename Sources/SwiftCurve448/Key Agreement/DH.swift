@@ -36,19 +36,20 @@ public protocol DiffieHellmanKeyAgreement {
 /// key.
 ///
 /// Generate a shared secret by calling your private key’s
-/// `sharedSecretFromKeyAgreement(publicKeyShare:)` method with the public key
-/// from another party. The other party computes the same secret by passing your
-/// public key to the equivalent method on their own private key.
+/// ``Curve448/KeyAgreement/PrivateKey/sharedSecretFromKeyAgreement(with:)``
+/// method with the public key from another party. The other party computes the
+/// same secret by passing your public key to the equivalent method on their own
+/// private key.
 ///
-/// The shared secret isn’t suitable as a symmetric cryptographic key
-/// (``SymmetricKey``) by itself. However, you use it to generate a key by
-/// calling either the
+/// The shared secret isn’t suitable as a symmetric cryptographic key by
+/// itself. However, you use it to generate a key by calling either the
 /// ``hkdfDerivedSymmetricKey(using:salt:sharedInfo:outputByteCount:)`` or
 /// ``x963DerivedSymmetricKey(using:sharedInfo:outputByteCount:)`` method of the
-/// shared secret. After the other party does the same, then you both share a
-/// symmetric key suitable for creating a message authentication code like
-/// ``HMAC``, or for opening and closing a sealed box with a cipher like
-/// ``ChaChaPoly`` or ``AES``.
+/// shared secret. Both methods return a `SymmetricKey` from CryptoKit (or from
+/// swift-crypto's `Crypto` module on platforms without CryptoKit). After the
+/// other party does the same, you both share a symmetric key suitable for
+/// creating a message authentication code like `HMAC`, or for opening and
+/// closing a sealed box with a cipher like `ChaChaPoly` or `AES.GCM`.
 public struct SharedSecret: ContiguousBytes {
     var ss: SecureBytes
 

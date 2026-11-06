@@ -43,12 +43,10 @@ extension Curve448.Signing.PrivateKey: Signer {
     /// - Parameters:
     ///   - data: The data to sign.
     ///
-    /// - Returns: The signature for the data. Although not required by [RFC
-    /// 8032](https://tools.ietf.org/html/rfc8032), which describes the
-    /// Edwards-Curve Digital Signature Algorithm (EdDSA), the CryptoKit
-    /// implementation of the algorithm employs randomization to generate a
-    /// different signature on every call, even for the same data and key, to
-    /// guard against side-channel attacks.
+    /// - Returns: The 114-byte signature for the data. Ed448 signing is
+    /// deterministic, as described in [RFC
+    /// 8032](https://www.rfc-editor.org/rfc/rfc8032): the same key and data
+    /// always produce the same signature.
     public func signature<D: DataProtocol>(for data: D) throws -> Data {
         return try self.openSSLSignature(for: data)
     }

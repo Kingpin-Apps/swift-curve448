@@ -45,11 +45,11 @@ extension Curve448 {
             }
         }
 
-        /// A Curve25519 public key used to verify cryptographic signatures.
+        /// A Curve448 public key used to verify cryptographic signatures.
         public struct PublicKey {
             private var baseKey: Curve448.Signing.Curve448PublicKeyImpl
 
-            /// Creates a Curve25519 public key from a data representation.
+            /// Creates a Curve448 public key from a data representation.
             ///
             /// - Parameters:
             ///   - rawRepresentation: A representation of the key as contiguous

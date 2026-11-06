@@ -52,7 +52,7 @@ extension Curve448 {
             }
         }
 
-        /// A Curve25519 private key used for key agreement.
+        /// A Curve448 private key used for key agreement.
         public struct PrivateKey: DiffieHellmanKeyAgreement {
             fileprivate var baseKey: Curve448PrivateKeyImpl
 
